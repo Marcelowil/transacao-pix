@@ -1,8 +1,8 @@
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from domain.usuario import Usuario
 from services.db import buscar_usuario_chave
+from services.BrasilAPI import buscar_nome_banco
 
 
 menu = """
@@ -14,7 +14,7 @@ menu = """
 """
 def acessar_menu(cpf, agencia):
     usuario = buscar_usuario_chave(cpf, agencia)
-    print(usuario.nome)
+    print(f"\nBem-vindo {usuario.nome} - Banco: {buscar_nome_banco(usuario.agencia)} | Conta: {usuario.conta}")
 
     while True:
         opcao = int(input(menu))

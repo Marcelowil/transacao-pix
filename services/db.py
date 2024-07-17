@@ -40,7 +40,7 @@ def retornar_saldo(id):
     cursor.execute("SELECT saldo FROM tb_usuarios WHERE id = %s;", (id, ))
     saldo = cursor.fetchone()
 
-    return f"Saldo: R${saldo[0]:.2f}"
+    return saldo[0]
 
 def cadastrar_chaves_db(tipo, id):
     cursor.execute("SELECT * FROM tb_usuarios WHERE id = %s;", (id,))

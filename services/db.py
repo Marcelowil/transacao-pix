@@ -13,16 +13,12 @@ conexao = mysql.connector.connect(**config)
 cursor = conexao.cursor()
 
 
-def login(cpf, agencia):
-    cpf = formatar_cpf(cpf)
-    
+def login(cpf, agencia):    
     cursor.execute("SELECT senha FROM tb_usuarios WHERE agencia LIKE %s AND cpf = %s;", ("%" + agencia, cpf, ))
     acesso = cursor.fetchone()
     return acesso
 
-def buscar_usuario_chave(cpf, agencia):
-    cpf = formatar_cpf(cpf)
-    
+def buscar_usuario_chave(cpf, agencia):    
     cursor.execute("SELECT * FROM tb_usuarios WHERE cpf = %s AND agencia LIKE %s;", (cpf, "%" + agencia,))
     usuario = cursor.fetchone()
 
@@ -56,12 +52,30 @@ def cadastrar_chaves_db(tipo, id):
 
         cursor.execute("INSERT INTO tb_chaves_pix(usuario_id, tipo, valor) VALUES (%s, %s, %s);", (id, tipo, valor, ))
         conexao.commit()
+        valor = formatar_chaves(tipo, valor)
         return f"{tipo.upper()}: {valor} cadastrado como chave pix no Banco {buscar_nome_banco(usuario[5])}"
     except Exception:
         conexao.rollback()
+        valor = formatar_chaves(tipo, valor)
         return f"{valor} já cadastrado como chave pix!"
+    
+def identificar_destinatario(valor):
+    cursor.execute("SELECT u.nome, u.agencia, p.tipo, p.valor FROM tb_usuarios u LEFT JOIN tb_chaves_pix p ON u.id = p.usuario_id WHERE p.valor = %s;", (valor, ))
+    destinatario = cursor.fetchone();
+
+    return destinatario
 
 
-def formatar_cpf(cpf):
-    cpf = CPF().mask(cpf)
-    return cpf
+def formatar_chaves(tipo, chave):
+    if len(chave) == 11:
+        if tipo == 'cpf':
+            chave = CPF().mask(chave)
+        else:
+            ddd = chave[:2]
+            primeira_parte = chave[2:7]
+            segunda_parte = chave[7:]
+            chave = f"({ddd}) {primeira_parte}-{segunda_parte}"
+    elif '@' in chave and tipo == 'email':
+        return chave
+    
+    return chave

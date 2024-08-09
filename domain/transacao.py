@@ -30,3 +30,6 @@ class Transacao:
     @property
     def status(self):
         return self._status
+    
+    def __str__(self):
+        return f'----------------------------------------------\n{self.id_transacao} - {self.data.strftime("%d/%m/%Y %H:%M")}\nDe: {self.origem} - Para: {self.destino}\nR${self.valor:.2f}\nStatus: {self.status}\n----------------------------------------------\n'

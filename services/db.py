@@ -6,6 +6,7 @@ from datetime import datetime
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from services.formatar_chaves import formatar_chaves
 from domain.usuario import Usuario
+from domain.transacao import Transacao
 from services.BrasilAPI import buscar_nome_banco
 
 
@@ -75,6 +76,21 @@ def transferencia(usuario, destinatario, valor):
         conexao.rollback()
         cursor.execute("INSERT INTO tb_transacoes(id, valor, data_transacao, usuario_origem, usuario_destino, status_transacao) VALUES (%s, %s, %s, %s, %s, %s);", (str(uuid.uuid4()), valor, datetime.now(), usuario.id_usuario, destinatario.id_usuario, "Transferência não realizada",))
         return "Erro ao realizar a transferência"
+    
+def retornar_extrato (opcao, id):
+    conexao = mysql.connector.connect(**config)
+    cursor = conexao.cursor()
+
+    if opcao == 1:
+        cursor.execute("SELECT t.id, t.valor, t.data_transacao, t.status_transacao, u.nome as nome_origem, u1.nome as nome_destino FROM tb_transacoes t LEFT JOIN tb_usuarios u ON u.id = t.usuario_origem LEFT JOIN tb_usuarios u1 ON u1.id = t.usuario_destino WHERE t.usuario_origem = %s OR t.usuario_destino = %s ORDER BY t.data_transacao DESC;", (id, id, ))
+    elif opcao == 2:
+        cursor.execute("SELECT t.id, t.valor, t.data_transacao, t.status_transacao, u.nome as nome_origem, u1.nome as nome_destino FROM tb_transacoes t LEFT JOIN tb_usuarios u ON u.id = t.usuario_origem LEFT JOIN tb_usuarios u1 ON u1.id = t.usuario_destino WHERE usuario_origem = %s ORDER BY t.data_transacao DESC;", (id, ))
+    elif opcao == 3:
+        cursor.execute("SELECT t.id, t.valor, t.data_transacao, t.status_transacao, u.nome as nome_origem, u1.nome as nome_destino FROM tb_transacoes t LEFT JOIN tb_usuarios u ON u.id = t.usuario_origem LEFT JOIN tb_usuarios u1 ON u1.id = t.usuario_destino WHERE usuario_destino = %s ORDER BY t.data_transacao DESC;", (id, ))
+       
+    extrato = cursor.fetchall()
+    return extrato
+
 
 
 def gerar_usuario(usuario, chaves):
@@ -84,3 +100,4 @@ def gerar_usuario(usuario, chaves):
 
     usuario = Usuario(usuario[1], usuario[2], usuario[3], usuario[4], usuario[5], usuario[6], usuario[7], lista_chaves, usuario[0])
     return usuario
+
